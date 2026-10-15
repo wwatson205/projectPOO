@@ -2,7 +2,7 @@ import json
 
 class Capteur:
 
-    def __init__(self, nom, mesures_brutes):
+    def init(self, nom, mesures_brutes):
         self.nom = nom
         self.brute = mesures_brutes
         self.nettoyer = []
