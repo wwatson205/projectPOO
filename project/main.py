@@ -1,59 +1,120 @@
 import json
 
+
 class Capteur:
 
     def __init__(self, nom, mesures_brutes):
+        # Initialise le nom du capteur et ses mesures brutes.
         self.nom = nom
         self.brute = mesures_brutes
+
+        # Cree une liste vide pour stocker les mesures nettoyees.
         self.mesures_propres = []
 
-    def nettoyer(self): #fonction qui garde uniquement les valeurs numériques, 
+    def nettoyer(self):
+        # Garde uniquement les valeurs numeriques autorisees.
         propre = []
+
+        # Parcourt toutes les mesures brutes du capteur.
         for valeurs in self.brute:
-            if type(valeurs) == float:
-                propre.append(valeurs)
-        self.nettoyer = propre
+
+            # Pour la luminosite, accepte les nombres entiers et decimaux.
+            if self.nom == "luminosite_atelier":
+                if type(valeurs) == float or type(valeurs) == int:
+                    # Ajoute la valeur a la liste des mesures propres.
+                    propre.append(valeurs)
+
+            else:
+                # Pour les autres capteurs, accepte uniquement les float.
+                if type(valeurs) == float:
+                    # Ajoute la valeur valide a la liste.
+                    propre.append(valeurs)
+
+        # Enregistre les mesures nettoyees dans l'objet.
+        self.mesures_propres = propre
+
+        # Retourne la liste des mesures nettoyees.
         return propre
-         # il faut parcourir les valeurs de chaque liste et enlever les None, null, str, et int (sauf lumi) tout float
-    
+
     def nb_valides(self):
-        return len(self.nettoyer) 
-        #fonction qui garde et compte uniquement les valeurs valides, 
+        # Retourne le nombre de mesures propres.
+        return len(self.mesures_propres)
 
     def nb_anomalies(self):
-        return len(self.brute) - len(self.nettoyer)
-        # anomalies de fonction nb
+        # Calcule le nombre de mesures rejetees.
+        # On soustrait le nombre de mesures valides aux mesures brutes.
+        return len(self.brute) - len(self.mesures_propres)
 
-    def moyenne(self):  #fonction qui fait la moyenne des valeurs depuis valeur valide sum (de tout) diviser par len de tout ( nb de val)
-        return sum(self.nettoyer) / len(self.nettoyer)
+    def moyenne(self):
+        # Verifie si la liste des mesures propres est vide.
+        if len(self.mesures_propres) == 0:
+            return None
 
-    def mini(self): #fonction qui renvoie la plus petite valeur faire un min(de tout)
-        return min(self.nettoyer)
+        # Calcule la moyenne : somme des valeurs divisee par leur nombre.
+        return sum(self.mesures_propres) / len(self.mesures_propres)
 
-    def maxi(self): #fonction qui renvoie la plus grande valeur faire un max(de tout)
-        return max(self.nettoyer)
+    def mini(self):
+        # Verifie qu'il existe au moins une mesure valide.
+        if len(self.mesures_propres) == 0:
+            return None
 
-    def amplitude(self): # fonction diff entre vmax et vmin qu'on a recup plus haut
-        return max(self.nettoyer) - min(self.nettoyer)
+        # Retourne la plus petite valeur de la liste.
+        return min(self.mesures_propres)
 
-    def charger(self, path): #fonction qui charge le fichier json
-        with open(path, 'r', encoding="utf-8") as file:
+    def maxi(self):
+        # Verifie qu'il existe au moins une mesure valide.
+        if len(self.mesures_propres) == 0:
+            return None
+
+        # Retourne la plus grande valeur de la liste.
+        return max(self.mesures_propres)
+
+    def amplitude(self):
+        # Verifie qu'il existe au moins une mesure valide.
+        if len(self.mesures_propres) == 0:
+            return None
+
+        # Calcule l'amplitude : maximum moins minimum.
+        amp = max(self.mesures_propres) - min(self.mesures_propres)
+
+        # Arrondit le resultat a deux chiffres apres la virgule.
+        return round(amp, 2)
+
+
+    def charger(self, path):
+        # Ouvre le fichier JSON et recupere les donnees.
+        with open(path, "r", encoding="utf-8") as file:
             donnees = json.load(file)
 
-        capteurs = {}
+            # Cree un dictionnaire pour stocker les capteurs.
+            capteurs = {}
 
-        for nom, mesures in donnees.items():
-            capteur = Capteur(nom, mesures)
-            capteur.nettoyer()
-            capteurs[nom] = capteur
+            # Parcourt les noms et les mesures de chaque capteur.
+            for nom, mesures in donnees.items():
 
-        return capteurs
+                # Cree un objet Capteur pour chaque liste.
+                capteur = Capteur(nom, mesures)
+
+                # Nettoie les mesures du capteur.
+                capteur.nettoyer()
+
+                # Ajoute le capteur dans le dictionnaire.
+                capteurs[nom] = capteur
+
+            return capteurs
 
 
-capteur = Capteur("temperature_bureau", [
-    22.5,22.3
-    ])
 
-print(capteur.nettoyer())
-print(capteur.nb_valides())
-print(capteur.moyenne())
+capteur = Capteur("", [])
+capteurs = capteur.charger("mesures_capteurs_reseau.json")
+
+for nom, capteur in capteurs.items():
+    print("Capteur :", nom)
+    print("Mesures propres :", capteur.mesures_propres)
+    print("Nombre de valeurs valides :", capteur.nb_valides())
+    print("Nombre d'anomalies :", capteur.nb_anomalies())
+    print("Moyenne :", capteur.moyenne())
+    print("Minimum :", capteur.mini())
+    print("Maximum :", capteur.maxi())
+    print("Amplitude :", capteur.amplitude(),"\n") # pour sauter une ligne et laisser de la place pour les autres dicos
+    
