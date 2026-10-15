@@ -2,28 +2,54 @@ import json
 
 class Capteur:
 
-    def __init__(self,nom, mesures_brutes):
-
+    def __init__(self, nom, mesures_brutes):
         self.nom = nom
         self.brute = mesures_brutes
-        self.nettoyer = nettoyer()
+        self.nettoyer = []
 
-    def nettoyer(self): #fonction qui garde uniquement les valeurs numériques, 
-        # il faut parcourir les valeurs de chaque liste et enlever les None, null, str, et int (sauf lumi) tout float
+    def nettoyer(self): 
+        propre = []
+        for valeurs in self.brute:
+            if type(valeurs) == float:
+                propre.append(valeurs)
+        self.nettoyer = propre
+        return propre
 
-    def nb_valides(self): #fonction qui garde et compte uniquement les valeurs valides, 
-        # parcourir toutes les valeurs valides et faire +1 au compteur des que valeur est valide
+    def nb_valides(self):
+        return len(self.nettoyer)
 
-    def nb_anomalies(self):# fonction nb anomalies
-         # parcourir toutes les valeurs non valides et faire +1 au compteur des que valeur est non val
-  
-    def moyenne(self): #fonction qui fait la moyenne des valeurs depuis valeur valide sum (de tout) diviser par len de tout ( nb de val)
+    def nb_anomalies(self):
+        return len(self.brute) - len(self.nettoyer)
 
-    def mini(self): #fonction qui renvoie la plus petite valeur faire un min(de tout)
+    def moyenne(self):
+        return sum(self.nettoyer) / len(self.nettoyer)
 
-    def maxi(self): #fonction qui renvoie la plus grande valeur faire un max(de tout)
+    def mini(self):
+        return min(self.nettoyer)
 
-    def amplitude(self): # fonction diff entre vmax et vmin qu'on a recup plus haut
+    def maxi(self):
+        return max(self.nettoyer)
 
-    def charger(self,path): #fonction qui charge le fichier json
+    def amplitude(self):
+        return max(self.nettoyer) - min(self.nettoyer)
 
+    def charger(self, path):
+        with open(path, 'r', encoding="utf-8") as file:
+            donnees = json.load(file)
+
+        capteurs = {}
+
+        for nom, mesures in donnees.items():
+            capteur = Capteur(nom, mesures)
+            capteur.nettoyer()
+            capteurs[nom] = capteur
+
+        return capteurs
+
+
+capteur = Capteur("temperature_bureau", [
+    22.5,
+    22.3,
+])
+
+print(capteur.nettoyer())
